@@ -48,7 +48,7 @@ import {
       return signOut(auth);
     };
   
-    const updateUserProfile = (name, photoUrl) => {
+    const updateUserProfile = (name, photoUrl,user) => {
       return updateProfile(user, {
         displayName: name,
         photoURL: photoUrl,
