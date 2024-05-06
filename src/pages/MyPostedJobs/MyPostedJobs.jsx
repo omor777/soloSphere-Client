@@ -5,7 +5,7 @@ import useAuth from "../../hooks/useAuth";
 
 const MyPostedJobs = () => {
   const { user } = useAuth();
-  const { isPending, data: jobs } = useQuery({
+  const {  data: jobs } = useQuery({
     queryKey: ["MY-POSTED-JOBS"],
     queryFn: async () => {
       try {
@@ -128,7 +128,7 @@ const MyPostedJobs = () => {
                             </svg>
                           </button>
 
-                          <Link
+                          <Link state={job._id}
                             to="/update-job"
                             className="text-gray-500 transition-colors duration-200   hover:text-yellow-500 focus:outline-none"
                           >
