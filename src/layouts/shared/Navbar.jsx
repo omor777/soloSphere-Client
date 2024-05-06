@@ -57,10 +57,12 @@ const Navbar = () => {
               </div>
               <ul
                 tabIndex={0}
-                className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow-md bg-base-100 rounded w-52 space-y-3"
+                className="menu menu-sm dropdown-content mt-3  p-2 shadow-md bg-base-100 rounded w-52 space-y-3 z-50"
               >
                 <li>
-                  <Link className="capitalize">add job</Link>
+                  <Link to="/add-job" className="capitalize">
+                    add job
+                  </Link>
                 </li>
                 <li>
                   <Link className="capitalize">my posted jobs</Link>

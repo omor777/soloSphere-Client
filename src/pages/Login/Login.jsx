@@ -1,22 +1,31 @@
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 
 const Login = () => {
-  const { user, setUser, googleLogin } = useAuth();
+  const { loginUser, googleLogin } = useAuth();
 
   const { register, handleSubmit } = useForm();
 
   const handleLogin = async (data) => {
-    console.log(data);
+    const { email, password } = data;
+    try {
+      await loginUser(email, password);
+      toast.success("Login successful");
+    } catch (error) {
+      console.dir(error);
+      toast.error(error?.message);
+    }
   };
 
   const handleGoogleLogin = async () => {
     try {
-      const { user } = await googleLogin();
-      console.log(user);
+      await googleLogin();
+      toast.success("Login successful");
     } catch (error) {
       console.error(error);
+      toast.error(error?.message);
     }
   };
 

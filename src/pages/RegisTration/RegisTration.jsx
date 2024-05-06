@@ -1,10 +1,11 @@
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
-import toast from "react-hot-toast";
 
 const Registration = () => {
-  const { user, setUser, createUser, updateUserProfile } = useAuth();
+  const { user, setUser, createUser, updateUserProfile, googleLogin } =
+    useAuth();
   const { register, handleSubmit } = useForm({
     defaultValues: {
       username: "",
@@ -24,7 +25,16 @@ const Registration = () => {
       // update forcefully username nad image
       setUser({ ...user, displayName: username, photoUrl: photoUrl });
 
-      toast.success('Registration Successful')
+      toast.success("Registration Successful");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await googleLogin();
+      toast.success("Registration Successful");
     } catch (error) {
       console.error(error);
     }
@@ -46,7 +56,10 @@ const Registration = () => {
             Get Your Free Account Now.
           </p>
 
-          <div className="flex cursor-pointer items-center justify-center mt-4 text-gray-600 transition-colors duration-300 transform border rounded-lg   hover:bg-gray-50 ">
+          <button
+            onClick={handleGoogleLogin}
+            className="flex cursor-pointer items-center justify-center mt-4 text-gray-600 transition-colors duration-300 transform border rounded-lg   hover:bg-gray-50 w-full"
+          >
             <div className="px-4 py-2">
               <svg className="w-6 h-6" viewBox="0 0 40 40">
                 <path
@@ -71,7 +84,7 @@ const Registration = () => {
             <span className="w-5/6 px-4 py-3 font-bold text-center">
               Sign in with Google
             </span>
-          </div>
+          </button>
 
           <div className="flex items-center justify-between mt-4">
             <span className="w-1/5 border-b  lg:w-1/4"></span>

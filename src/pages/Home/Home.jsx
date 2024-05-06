@@ -1,9 +1,12 @@
-import React from 'react'
+import React from "react";
+import Banner from "./Banner";
 
 const Home = () => {
   return (
-    <div>Home</div>
-  )
-}
+    <div className="my-14 container">
+      <Banner />
+    </div>
+  );
+};
 
-export default Home
+export default Home;
