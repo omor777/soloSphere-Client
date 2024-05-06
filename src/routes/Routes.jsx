@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import Main from "../layouts/Main";
 import AddJob from "../pages/AddJob/AddJob";
 import Home from "../pages/Home/Home";
+import JobDetails from "../pages/JobDetails/JobDetails";
 import Login from "../pages/Login/Login";
 import Registration from "../pages/RegisTration/RegisTration";
 
@@ -25,6 +26,10 @@ export const router = createBrowserRouter([
       {
         path: "/add-job",
         element: <AddJob />,
+      },
+      {
+        path: "/job-details/:id",
+        element: <JobDetails />,
       },
     ],
   },

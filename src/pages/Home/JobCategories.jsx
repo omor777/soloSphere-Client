@@ -7,7 +7,7 @@ import JobCard from "../../components/JobCard/JobCard";
 const fetchJobData = async () => {
   try {
     const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/jobs`);
-    return data;
+    return data || []
   } catch (error) {
     console.error(error);
   }
@@ -24,7 +24,7 @@ const JobCategories = () => {
     queryFn: fetchJobData,
   });
 
-  console.log(jobs);
+//   console.log(jobs);
 
   return (
     <div className="my-20">

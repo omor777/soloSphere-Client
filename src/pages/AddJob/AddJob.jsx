@@ -16,20 +16,21 @@ const AddJob = () => {
 
   const handleAddJob = async (data) => {
     const { job_title, category, min_price, max_price, description } = data;
-    console.log(data);
 
     const job = {
       job_title,
       description,
       category,
-      email,
-      name: displayName,
       date: startDate,
       min_price: parseFloat(min_price),
       max_price: parseFloat(max_price),
+      buyer: {
+        email,
+        name: displayName,
+      },
     };
 
-    console.log(job);
+    // console.log(job);
 
     try {
       const { data } = await axios.post(
