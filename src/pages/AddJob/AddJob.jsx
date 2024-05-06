@@ -3,6 +3,7 @@ import { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import useAuth from "../../hooks/useAuth";
 
 const AddJob = () => {
@@ -20,6 +21,7 @@ const AddJob = () => {
     const job = {
       job_title,
       description,
+      category,
       email,
       name: displayName,
       date: startDate,
@@ -27,11 +29,18 @@ const AddJob = () => {
       max_price: parseFloat(max_price),
     };
 
-    // console.log(job);
+    console.log(job);
 
     try {
-      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/jobs`,job);
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_API_URL}/jobs`,
+        job
+      );
+
       console.log(data);
+      if (data.insertedId) {
+        toast.success("Job added successfully");
+      }
     } catch (error) {
       console.error(error);
     }
