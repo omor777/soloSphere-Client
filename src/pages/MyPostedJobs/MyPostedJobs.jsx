@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 
 const MyPostedJobs = () => {
   const { user } = useAuth();
-  const {  data: jobs } = useQuery({
+  const { data: jobs } = useQuery({
     queryKey: ["MY-POSTED-JOBS"],
     queryFn: async () => {
       try {
@@ -18,6 +19,20 @@ const MyPostedJobs = () => {
       }
     },
   });
+
+  const handleDeleteJob = async (id) => {
+    try {
+      const isDeleted = confirm("Are you sure you want to delete this?");
+
+      if (isDeleted) {
+        await axios.delete(`${import.meta.env.VITE_API_URL}/jobs/${id}`);
+
+        toast.success("Delete successful");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <section className="container px-4 mx-auto pt-12">
@@ -97,7 +112,7 @@ const MyPostedJobs = () => {
                         <div className="flex items-center gap-x-2">
                           <p
                             className="px-3 py-1 rounded-full text-blue-500 bg-blue-100/60
-                                 text-xs"
+                            text-xs"
                           >
                             {job.category}
                           </p>
@@ -111,7 +126,10 @@ const MyPostedJobs = () => {
                       </td>
                       <td className="px-4 py-4 text-sm whitespace-nowrap">
                         <div className="flex items-center gap-x-6">
-                          <button className="text-gray-500 transition-colors duration-200   hover:text-red-500 focus:outline-none">
+                          <button
+                            onClick={() => handleDeleteJob(job._id)}
+                            className="text-gray-500 transition-colors duration-200   hover:text-red-500 focus:outline-none"
+                          >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               fill="none"
@@ -128,7 +146,8 @@ const MyPostedJobs = () => {
                             </svg>
                           </button>
 
-                          <Link state={job._id}
+                          <Link
+                            state={job._id}
                             to="/update-job"
                             className="text-gray-500 transition-colors duration-200   hover:text-yellow-500 focus:outline-none"
                           >

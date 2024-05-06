@@ -3,7 +3,10 @@ import axios from "axios";
 import { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
 
 const fetchJobData = async (id) => {
   try {
@@ -18,6 +21,10 @@ const fetchJobData = async (id) => {
 
 const JobDetails = () => {
   const [startDate, setStartDate] = useState(new Date());
+
+  const { user } = useAuth();
+
+  const { register, handleSubmit } = useForm();
 
   const { id } = useParams();
 
@@ -43,7 +50,49 @@ const JobDetails = () => {
     max_price,
     buyer: { name, email },
   } = job ?? {};
-  console.log(job);
+  // console.log(job);
+
+  const handleBidJob = async (data) => {
+    const { price, comment } = data;
+
+    if (email === user?.email) {
+      return toast.error("Action not permitted!");
+    }
+
+    if (min_price > parseFloat(price)) {
+      return toast.error("Offer more or at least minimum price");
+    }
+    // omit the id from job object
+    const { _id, ...postedJob } = job;
+
+    const bidJob = {
+      ...postedJob,
+      applier: {
+        email: user?.email,
+        price: parseFloat(price),
+        comment,
+        date: startDate,
+      },
+      status: {
+        isComplete: false,
+        isRejected: false,
+      },
+    };
+
+    // console.log(bidJob);
+
+    try {
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_API_URL}/bids`,
+        bidJob
+      );
+      if (data.insertedId) {
+        toast.success("Bid successful");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div className="flex flex-col md:flex-row justify-around gap-5  items-center min-h-[calc(100vh-306px)] md:max-w-screen-xl mx-auto ">
@@ -69,8 +118,10 @@ const JobDetails = () => {
           </p>
           <div className="flex items-center gap-5">
             <div>
-              <p className="mt-2 text-sm  text-gray-600 ">Name: {name ?? ''}</p>
-              <p className="mt-2 text-sm  text-gray-600 ">Email: {email ?? ""}</p>
+              <p className="mt-2 text-sm  text-gray-600 ">Name: {name ?? ""}</p>
+              <p className="mt-2 text-sm  text-gray-600 ">
+                Email: {email ?? ""}
+              </p>
             </div>
             <div className="rounded-full object-cover overflow-hidden w-14 h-14">
               <img src="" alt="" />
@@ -87,28 +138,31 @@ const JobDetails = () => {
           Place A Bid
         </h2>
 
-        <form>
+        <form onSubmit={handleSubmit(handleBidJob)}>
           <div className="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
             <div>
               <label className="text-gray-700 " htmlFor="price">
                 Price
               </label>
               <input
+                {...register("price")}
                 id="price"
                 type="text"
                 name="price"
                 className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md   focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40  focus:outline-none focus:ring"
               />
             </div>
-
+            {/* jfldfjldfjdlfjdlfjdfldjfldfjdlfdl */}
             <div>
               <label className="text-gray-700 " htmlFor="emailAddress">
                 Email Address
               </label>
               <input
+                {...register("email")}
                 id="emailAddress"
                 type="email"
                 name="email"
+                defaultValue={user?.email}
                 disabled
                 className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md   focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40  focus:outline-none focus:ring"
               />
@@ -119,6 +173,7 @@ const JobDetails = () => {
                 Comment
               </label>
               <input
+                {...register("comment")}
                 id="comment"
                 name="comment"
                 type="text"
