@@ -70,10 +70,14 @@ const Navbar = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link className="capitalize">my bids</Link>
+                  <Link to="/my-bids" className="capitalize">
+                    my bids
+                  </Link>
                 </li>
                 <li>
-                  <Link className="capitalize">bids requests</Link>
+                  <Link to="/bid-request" className="capitalize">
+                    bids requests
+                  </Link>
                 </li>
                 <li>
                   <button

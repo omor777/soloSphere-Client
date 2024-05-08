@@ -5,9 +5,11 @@ import Home from "../pages/Home/Home";
 import UpdateJob from "../pages/Home/UpdateJob/UpdateJob";
 import JobDetails from "../pages/JobDetails/JobDetails";
 import Login from "../pages/Login/Login";
+import MyBids from "../pages/MyBids";
 import MyPostedJobs from "../pages/MyPostedJobs/MyPostedJobs";
 import Registration from "../pages/RegisTration/RegisTration";
 import PrivateRoute from "./PrivateRoute";
+import BidRequests from "../pages/BidRequest/BidRequest";
 
 export const router = createBrowserRouter([
   {
@@ -47,6 +49,22 @@ export const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <UpdateJob />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/my-bids",
+        element: (
+          <PrivateRoute>
+            <MyBids />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/bid-request",
+        element: (
+          <PrivateRoute>
+            <BidRequests />
           </PrivateRoute>
         ),
       },
