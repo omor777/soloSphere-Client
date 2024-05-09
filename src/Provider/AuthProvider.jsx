@@ -60,15 +60,19 @@ const AuthProvider = ({ children }) => {
       if (currentUser) {
         setLoading(false);
         setUser(currentUser);
-        // console.log(currentUser);
+        // set user email local storage
+        localStorage.setItem("userEmail", currentUser.email);
       } else {
         setUser(currentUser);
         setLoading(false);
+        // setLoading(false);
+        localStorage.removeItem("userEmail");
+        // console.log(currentUser);
       }
     });
 
     return () => unsubscribe();
-  }, [reload]);
+  }, []);
 
   const authInfo = {
     user,

@@ -1,6 +1,8 @@
 import { createBrowserRouter } from "react-router-dom";
 import Main from "../layouts/Main";
 import AddJob from "../pages/AddJob/AddJob";
+import BidRequests from "../pages/BidRequest/BidRequest";
+import AllJobs from "../pages/Home/AllJobs/AllJobs";
 import Home from "../pages/Home/Home";
 import UpdateJob from "../pages/Home/UpdateJob/UpdateJob";
 import JobDetails from "../pages/JobDetails/JobDetails";
@@ -9,7 +11,6 @@ import MyBids from "../pages/MyBids";
 import MyPostedJobs from "../pages/MyPostedJobs/MyPostedJobs";
 import Registration from "../pages/RegisTration/RegisTration";
 import PrivateRoute from "./PrivateRoute";
-import BidRequests from "../pages/BidRequest/BidRequest";
 
 export const router = createBrowserRouter([
   {
@@ -30,7 +31,16 @@ export const router = createBrowserRouter([
       },
       {
         path: "/add-job",
-        element: <AddJob />,
+        element: (
+          <PrivateRoute>
+            <AddJob />
+          </PrivateRoute>
+        ),
+      },
+
+      {
+        path: "/all-jobs",
+        element: <AllJobs />,
       },
       {
         path: "/job-details/:id",
@@ -45,12 +55,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "/update-job",
+        path: "/update-job/:id",
         element: (
           <PrivateRoute>
             <UpdateJob />
           </PrivateRoute>
         ),
+        loader: ({ params }) =>
+          fetch(`${import.meta.env.VITE_API_URL}/jobs/s/${params.id}`),
       },
       {
         path: "/my-bids",

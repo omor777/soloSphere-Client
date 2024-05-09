@@ -3,22 +3,25 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
+import useAxiosSecure from "../../hooks/useAxiosSecure";
 
 const MyPostedJobs = () => {
+  const axiosSecure = useAxiosSecure();
   const { user } = useAuth();
-  const { data: jobs } = useQuery({
+  const { data: jobs, refetch } = useQuery({
     queryKey: ["MY-POSTED-JOBS"],
     queryFn: async () => {
       try {
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_API_URL}/jobs/m/${user?.email}`
-        );
+        const { data } = await axiosSecure.get(`/my-jobs/${user?.email}`);
+        // console.log(data);
         return data;
       } catch (error) {
         console.error(error);
       }
     },
   });
+
+  // console.log(import.meta.env.VITE_API_URL);
 
   const handleDeleteJob = async (id) => {
     try {
@@ -32,6 +35,8 @@ const MyPostedJobs = () => {
     } catch (error) {
       console.error(error);
     }
+
+    refetch();
   };
 
   return (
@@ -102,7 +107,7 @@ const MyPostedJobs = () => {
                       </td>
 
                       <td className="px-4 py-4 text-sm text-gray-500  whitespace-nowrap">
-                        {new Date(job.date).toLocaleDateString()}
+                        {new Date(job.deadline).toLocaleDateString()}
                       </td>
 
                       <td className="px-4 py-4 text-sm text-gray-500  whitespace-nowrap">
@@ -111,8 +116,17 @@ const MyPostedJobs = () => {
                       <td className="px-4 py-4 text-sm whitespace-nowrap">
                         <div className="flex items-center gap-x-2">
                           <p
-                            className="px-3 py-1 rounded-full text-blue-500 bg-blue-100/60
-                            text-xs"
+                            className={`px-3 py-1 rounded-full ${
+                              job.category === "Web Development" &&
+                              "text-blue-500 bg-blue-100/60"
+                            } ${
+                              job.category === "Graphics Design" &&
+                              "bg-green-100/60 text-green-500"
+                            } ${
+                              job.category === "Digital Marketing" &&
+                              "bg-red-100/60 text-red-500"
+                            }
+                            text-xs`}
                           >
                             {job.category}
                           </p>
@@ -147,8 +161,7 @@ const MyPostedJobs = () => {
                           </button>
 
                           <Link
-                            state={job._id}
-                            to="/update-job"
+                            to={`/update-job/${job._id}`}
                             className="text-gray-500 transition-colors duration-200   hover:text-yellow-500 focus:outline-none"
                           >
                             <svg

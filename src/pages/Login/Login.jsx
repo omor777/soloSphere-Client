@@ -1,18 +1,25 @@
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
+import useAxiosSecure from "../../hooks/useAxiosSecure";
 
 const Login = () => {
   const { loginUser, googleLogin } = useAuth();
-
+  const axiosSecure = useAxiosSecure();
   const { register, handleSubmit } = useForm();
+  const { state } = useLocation();
+  const navigate = useNavigate();
+  // console.log(location);
+
+  const form = state || "/";
 
   const handleLogin = async (data) => {
     const { email, password } = data;
     try {
       await loginUser(email, password);
       toast.success("Login successful");
+      navigate(form);
     } catch (error) {
       console.dir(error);
       toast.error(error?.message);
@@ -21,8 +28,19 @@ const Login = () => {
 
   const handleGoogleLogin = async () => {
     try {
-      await googleLogin();
+      const { user } = await googleLogin();
       toast.success("Login successful");
+      navigate(form);
+      // console.log(user, "user login");
+
+      await axiosSecure.post(
+        `/jwt`,
+        { email: user?.email },
+        { withCredentials: true }
+      );
+
+      navigate(form);
+      // console.log(data);
     } catch (error) {
       console.error(error);
       toast.error(error?.message);

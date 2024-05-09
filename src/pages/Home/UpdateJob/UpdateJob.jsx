@@ -1,61 +1,56 @@
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
-import { useLocation } from "react-router-dom";
-import useAuth from "../../../hooks/useAuth";
+import { useLoaderData, useNavigate } from "react-router-dom";
 
 const UpdateJob = () => {
   const [startDate, setStartDate] = useState(null);
-  const { state: id } = useLocation();
-  const { user } = useAuth();
+  const job = useLoaderData();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    setStartDate(job.deadline);
+  }, [job]);
 
   const { register, handleSubmit } = useForm({
-    defaultValues: async () => {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL}/jobs/s/${id}`
-      );
-
-      setStartDate(data?.date);
-
-      return {
-        job_title: data.job_title,
-        email: data.buyer.email,
-        category: data.category,
-        min_price: data.min_price,
-        max_price: data.max_price,
-        description: data.description,
-      };
+    defaultValues: {
+      job_title: job.job_title || "",
+      email: job.buyer.email || "",
+      category: job.category || "",
+      min_price: job.min_price || "",
+      max_price: job.max_price || "",
+      description: job.description || "",
     },
   });
 
   const handleUpdateJob = async (data) => {
     const { job_title, category, min_price, max_price, description } = data;
 
-    const updateJob = {
+    // console.log(data);
+
+    const updatedJob = {
       job_title,
-      description,
+      deadline: startDate,
       category,
-      date: startDate,
+      description,
       min_price: parseFloat(min_price),
       max_price: parseFloat(max_price),
-      buyer: {
-        email: user?.email,
-        name: user?.displayName,
-      },
     };
+
+    // console.log(updatedJob);
 
     // update job by id
     try {
       const { data } = await axios.put(
-        `${import.meta.env.VITE_API_URL}/jobs/${id}`,
-        updateJob
+        `${import.meta.env.VITE_API_URL}/jobs/${job?._id}`,
+        updatedJob
       );
 
-      console.log("axios data", data);
       if (data.modifiedCount > 0) {
+        navigate("/my-posted-jobs");
         toast.success("Job updated");
       }
     } catch (error) {

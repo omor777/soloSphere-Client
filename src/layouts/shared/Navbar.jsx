@@ -1,16 +1,22 @@
 import { Link, NavLink } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
+import useAxiosSecure from "../../hooks/useAxiosSecure";
 
 const Navbar = () => {
+  const axiosSecure = useAxiosSecure();
   const { user, logoutUser } = useAuth();
+  const email = localStorage.getItem("userEmail");
 
   const handleLogout = async () => {
     try {
       await logoutUser();
+
+      await axiosSecure.post("/logout");
     } catch (error) {
       console.error(error);
     }
-  };
+};
+
   return (
     <header className=" bg-base-100 shadow-md">
       <nav className="navbar container ">
@@ -32,8 +38,14 @@ const Navbar = () => {
             >
               Home
             </NavLink>
+            <NavLink
+              className="font-bold mr-5  text-lg duration-300 hover:text-secondary"
+              to="/all-jobs"
+            >
+              All Jobs
+            </NavLink>
           </div>
-          {!user ? (
+          {!email ? (
             <Link
               to="/login"
               className="font-bold mr-5  text-lg duration-300 hover:text-secondary"

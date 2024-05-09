@@ -1,26 +1,37 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import useAuth from "../hooks/useAuth";
+import useAxiosSecure from "../hooks/useAxiosSecure";
 
-const fetchBidData = async (email) => {
-  try {
-    const { data } = await axios.get(
-      `${import.meta.env.VITE_API_URL}/bids/a/${email}`
-    );
-    return data;
-  } catch (error) {
-    console.error(error);
-  }
-};
+const email = localStorage.getItem("userEmail");
 
 const MyBids = () => {
-  const { user } = useAuth();
-  const { data: bidJobs } = useQuery({
-    queryKey: ["MY-BID-JOBS"],
-    queryFn: () => fetchBidData(user?.email),
+  const axiosSecure = useAxiosSecure();
+  const { data: jobs, refetch } = useQuery({
+    queryKey: ["my-jobs"],
+    queryFn: async () => {
+      try {
+        const { data } = await axiosSecure.get(`/my-bids/${email}`);
+        return data;
+      } catch (error) {
+        console.error(error);
+      }
+    },
   });
 
-  console.log(bidJobs);
+  const handleAccept = async (id) => {
+    // console.log(id);
+    try {
+       await axios.patch(
+        `${import.meta.env.VITE_API_URL}/bids/${id}`,
+        { status: "Complete" }
+      );
+
+      // console.log(data);
+    } catch (error) {
+      console.error(error);
+    }
+    refetch();
+  };
 
   return (
     <section className="container px-4 mx-auto pt-12">
@@ -85,24 +96,33 @@ const MyBids = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200 ">
                   {/* dlkfjdlfjdlfjdlfjdlfld */}
-                  {bidJobs?.map((job) => (
+                  {jobs?.map((job) => (
                     <tr key={job._id}>
                       <td className="px-4 py-4 text-sm text-gray-500  whitespace-nowrap">
                         {job.job_title}
                       </td>
 
                       <td className="px-4 py-4 text-sm text-gray-500  whitespace-nowrap">
-                        {new Date(job.date).toLocaleDateString()}
+                        {new Date(job.deadline).toLocaleDateString()}
                       </td>
 
                       <td className="px-4 py-4 text-sm text-gray-500  whitespace-nowrap">
-                        ${job.applier.price}
+                        ${job.price}
                       </td>
                       <td className="px-4 py-4 text-sm whitespace-nowrap">
                         <div className="flex items-center gap-x-2">
                           <p
-                            className="px-3 py-1 rounded-full text-blue-500 bg-blue-100/60
-                                 text-xs"
+                            className={`px-3 py-1 rounded-full ${
+                              job.category === "Web Development" &&
+                              "text-blue-500 bg-blue-100/60"
+                            } ${
+                              job.category === "Graphics Design" &&
+                              "bg-green-100/60 text-green-500"
+                            } ${
+                              job.category === "Digital Marketing" &&
+                              "bg-red-100/60 text-red-500"
+                            }
+                              text-xs`}
                           >
                             {job.category}
                           </p>
@@ -111,30 +131,35 @@ const MyBids = () => {
                       <td className="px-4 py-4 text-sm font-medium text-gray-700 whitespace-nowrap">
                         <div
                           className={`inline-flex items-center px-3 py-1 rounded-full gap-x-2 ${
-                            job.complete
-                              ? "bg-green-100/60 text-green-500"
-                              : job.accept
-                              ? "bg-blue-100/60 text-blue-500"
-                              : job.reject
-                              ? "bg-red-100/60 text-red-500"
-                              : "bg-yellow-100/60 text-yellow-500"
+                            job?.status === "Pending" &&
+                            "bg-yellow-100/60 text-yellow-500"
+                          } ${
+                            job?.status === "In Progress" &&
+                            "bg-blue-100/60 text-blue-500"
+                          } ${
+                            job?.status === "Rejected" &&
+                            "bg-red-100/60 text-red-500"
+                          } ${
+                            job?.status === "Complete" &&
+                            "bg-green-100/60 text-green-500"
                           }`}
                         >
-                          <span className="h-1.5 w-1.5 rounded-full bg-yellow-500"></span>
-                          <h2 className="text-sm font-normal ">
-                            {job.complete
-                              ? "Complete"
-                              : job.accept
-                              ? "In Progress"
-                              : job.reject
-                              ? "Rejected"
-                              : "Pending"}
-                          </h2>
+                          <span
+                            className={`h-1.5 w-1.5 rounded-full ${
+                              job?.status === "Pending" && "bg-yellow-500"
+                            } ${
+                              job?.status === "In Progress" && "bg-blue-500"
+                            } ${job.status === "Rejected" && "bg-red-500"} ${
+                              job.status === "Complete" && "bg-green-500"
+                            }`}
+                          ></span>
+                          <h2 className="text-sm font-normal ">{job.status}</h2>
                         </div>
                       </td>
                       <td className="px-4 py-4 text-sm whitespace-nowrap">
                         <button
-                          disabled={job.accept ? false : true}
+                          onClick={() => handleAccept(job._id)}
+                          disabled={job.status !== "In Progress"}
                           title="Mark Complete"
                           className="text-gray-500 transition-colors duration-200   hover:text-red-500 focus:outline-none disabled:cursor-not-allowed"
                         >

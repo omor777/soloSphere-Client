@@ -4,47 +4,58 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 
 const AddJob = () => {
   const [startDate, setStartDate] = useState(new Date());
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const { displayName, email } = user || {};
 
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, reset } = useForm({
+    defaultValues: {
+      email: localStorage.getItem("userEmail") || "",
+    },
+  });
 
   const handleAddJob = async (data) => {
-    const { job_title, category, min_price, max_price, description } = data;
+    const { job_title, category, min_price, max_price, description } =
+      data || {};
 
-    const job = {
+    const jobData = {
       job_title,
-      description,
+      deadline: startDate,
       category,
-      date: startDate,
+      description,
       min_price: parseFloat(min_price),
       max_price: parseFloat(max_price),
       buyer: {
         email,
         name: displayName,
+        photo: user?.photoURL,
       },
+      bid_count: 0,
     };
 
-    // console.log(job);
+    // console.log(jobData);
 
     try {
       const { data } = await axios.post(
         `${import.meta.env.VITE_API_URL}/jobs`,
-        job
+        jobData
       );
 
-      console.log(data);
       if (data.insertedId) {
         toast.success("Job added successfully");
+        navigate("/my-posted-jobs");
       }
     } catch (error) {
       console.error(error);
     }
+    // reset the form
+    reset();
   };
 
   return (
@@ -80,7 +91,7 @@ const AddJob = () => {
                 disabled
                 className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md  focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40  focus:outline-none focus:ring"
                 {...register("email")}
-                defaultValue={user?.email}
+                // defaultValue={user?.email}
               />
             </div>
             <div className="flex flex-col gap-2 ">

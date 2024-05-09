@@ -1,39 +1,77 @@
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import useAuth from "../../hooks/useAuth";
+import useAxiosCommon from "../../hooks/useAxiosCommon";
+import useAxiosSecure from "../../hooks/useAxiosSecure";
 
-const fetchBidData = async (email) => {
-  try {
-    const { data } = await axios.get(
-      `${import.meta.env.VITE_API_URL}/bids/b/${email}`
-    );
-    return data;
-  } catch (error) {
-    console.error(error);
-  }
-};
+// const email = localStorage.getItem("userEmail");
 
 const BidRequests = () => {
+  const axiosCommon = useAxiosCommon();
+  const axiosSecure = useAxiosSecure();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { data: jobs } = useQuery({
-    queryKey: ["MY-BID-JOBS"],
-    queryFn: () => fetchBidData(user?.email),
+  const { data: jobs, } = useQuery({
+    queryKey: ["bid-request"],
+    queryFn: async () => {
+      try {
+        const { data } = await axiosSecure.get(`/bid-request/${user?.email}`);
+        return data;
+      } catch (error) {
+        console.error(error);
+      }
+    },
+  });
+
+  const { mutateAsync } = useMutation({
+    mutationFn: async ({ id, status }) => {
+      console.log(id, status, "mutation function");
+      const { data } = await axiosCommon.patch(`/bids/${id}`, { status });
+      // console.log(data);
+      return data;
+    },
+    onSuccess: () => {
+      // console.log("update");
+      toast.success("update!");
+
+      queryClient.invalidateQueries({
+        queryKey: ["bid-request"],
+      });
+    },
   });
 
   //   console.log(jobs);
 
-  const handleAcceptBid = async (id) => {
-    console.log(id);
-
-    try {
-      const { data } = await axios.patch(
-        `${import.meta.env.VITE_API_URL}/bids/${id}`
-      );
-      console.log(data);
-    } catch (error) {
-      console.error(error);
-    }
+  const handleAccept = async (id, prevStatus, status) => {
+    // console.log(id, prevStatus, status);
+    if (prevStatus === status) return console.log("hobe na");
+    await mutateAsync({ id, status });
   };
+
+  const handleReject = async (id, prevStatus, status) => {
+    // console.log(id, prevStatus, status);
+    if (prevStatus === status) return console.log("hobe na");
+    await mutateAsync({ id, status });
+
+    // console.log(id, prevStatus, status);
+
+    // try {
+    //   const { data } = await axios.patch(
+    //     `${import.meta.env.VITE_API_URL}/bids/${id}`,
+    //     {
+    //       status,
+    //     }
+    //   );
+
+    //   console.log(data);
+    // } catch (error) {
+    //   console.error(error);
+    // }
+
+    // refetch();
+  };
+
+  // console.log(jobs);
 
   return (
     <section className="container px-4 mx-auto pt-12">
@@ -109,24 +147,33 @@ const BidRequests = () => {
                   {jobs?.map((job) => (
                     <tr key={job._id}>
                       <td className="px-4 py-4 text-sm text-gray-500  whitespace-nowrap">
-                        {job.job_title}
+                        {job?.job_title}
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-500  whitespace-nowrap">
-                        {job.applier.email}
-                      </td>
-
-                      <td className="px-4 py-4 text-sm text-gray-500  whitespace-nowrap">
-                        {new Date(job.date).toLocaleDateString()}
+                        {job?.email}
                       </td>
 
                       <td className="px-4 py-4 text-sm text-gray-500  whitespace-nowrap">
-                        ${job.applier.price}
+                        {new Date(job?.deadline).toLocaleDateString()}
+                      </td>
+
+                      <td className="px-4 py-4 text-sm text-gray-500  whitespace-nowrap">
+                        ${job?.price}
                       </td>
                       <td className="px-4 py-4 text-sm whitespace-nowrap">
                         <div className="flex items-center gap-x-2">
                           <p
-                            className="px-3 py-1 rounded-full text-blue-500 bg-blue-100/60
-                                     text-xs"
+                            className={`px-3 py-1 rounded-full ${
+                              job.category === "Web Development" &&
+                              "text-blue-500 bg-blue-100/60"
+                            } ${
+                              job.category === "Graphics Design" &&
+                              "bg-green-100/60 text-green-500"
+                            } ${
+                              job.category === "Digital Marketing" &&
+                              "bg-red-100/60 text-red-500"
+                            }
+                              text-xs`}
                           >
                             {job.category}
                           </p>
@@ -135,36 +182,45 @@ const BidRequests = () => {
                       <td className="px-4 py-4 text-sm font-medium text-gray-700 whitespace-nowrap">
                         <div
                           className={`inline-flex items-center px-3 py-1 rounded-full gap-x-2 ${
-                            job.accept
-                              ? "bg-green-100/60 text-green-500"
-                              : job.reject
-                              ? "bg-red-100 text-red-500"
-                              : "bg-yellow-100/60 text-yellow-500"
+                            job?.status === "Pending" &&
+                            "bg-yellow-100/60 text-yellow-500"
+                          } ${
+                            job?.status === "In Progress" &&
+                            "bg-blue-100/60 text-blue-500"
+                          } ${
+                            job?.status === "Rejected" &&
+                            "bg-red-100/60 text-red-500"
+                          } ${
+                            job?.status === "Complete" &&
+                            "bg-green-100/60 text-green-500"
                           }`}
                         >
                           <span
                             className={`h-1.5 w-1.5 rounded-full ${
-                              job.accept
-                                ? "bg-green-500"
-                                : job.reject
-                                ? "bg-red-500"
-                                : "bg-yellow-500"
+                              job?.status === "Pending" && "bg-yellow-500"
+                            } ${
+                              job?.status === "In Progress" && "bg-blue-500"
+                            } ${job.status === "Rejected" && "bg-red-500"} ${
+                              job.status === "Complete" && "bg-green-500"
                             }`}
                           ></span>
                           <h2 className="text-sm font-normal ">
-                            {job.accept
-                              ? "Complete"
-                              : job.reject
-                              ? "Rejected"
-                              : "Pending"}
+                            {job?.status}
                           </h2>
                         </div>
                       </td>
                       <td className="px-4 py-4 text-sm whitespace-nowrap">
                         <div className="flex items-center gap-x-6">
                           <button
-                            onClick={() => handleAcceptBid(job._id)}
-                            className="text-gray-500 transition-colors duration-200   hover:text-red-500 focus:outline-none"
+                            disabled={job.status === "Complete"}
+                            onClick={() =>
+                              handleAccept(job._id, job.status, "In Progress")
+                            }
+                            className={`text-gray-500 transition-colors duration-200   hover:text-red-500 focus:outline-none ${
+                              job.status === "Complete"
+                                ? "cursor-not-allowed"
+                                : "cursor-pointer"
+                            }`}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -182,7 +238,17 @@ const BidRequests = () => {
                             </svg>
                           </button>
 
-                          <button className="text-gray-500 transition-colors duration-200   hover:text-yellow-500 focus:outline-none">
+                          <button
+                            disabled={job.status === "Complete"}
+                            onClick={() =>
+                              handleReject(job._id, job.status, "Rejected")
+                            }
+                            className={`text-gray-500 transition-colors duration-200   hover:text-red-500 focus:outline-none ${
+                              job.status === "Complete"
+                                ? "cursor-not-allowed"
+                                : "cursor-pointer"
+                            }`}
+                          >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               fill="none"
